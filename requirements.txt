@@ -1,6 +1,5 @@
-Flask
-gunicorn
-tensorflow-cpu
+Flask==2.3.5
+tensorflow==2.13.0
 numpy
 Pillow
-Werkzeug
+gunicorn
