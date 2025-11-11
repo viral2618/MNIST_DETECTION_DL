@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🧠 MNIST Digit Classifier</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="container">
+    <h1>🧠 MNIST Digit Classifier</h1>
+    <p>Draw a digit (0–9) below and let the AI predict it!</p>
+
+    <div class="canvas-container">
+      <canvas id="canvas" width="280" height="280"></canvas>
+    </div>
+
+    <div class="button-group">
+      <button id="clear">🧹 Clear</button>
+      <button id="predict">🔮 Predict</button>
+    </div>
+
+    <div id="result" class="result-box hidden">
+      <h2>Prediction: <span id="prediction-value">?</span></h2>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
