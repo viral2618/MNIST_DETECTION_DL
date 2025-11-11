@@ -1,50 +1,63 @@
-const imageInput = document.getElementById('imageInput');
-const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d');
-const predictBtn = document.getElementById('predictBtn');
-const result = document.getElementById('result');
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+const clearBtn = document.getElementById("clear");
+const predictBtn = document.getElementById("predict");
+const resultBox = document.getElementById("result");
+const resultValue = document.getElementById("prediction-value");
 
-// Draw uploaded image on canvas
-imageInput.addEventListener('change', () => {
-    const file = imageInput.files[0];
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const img = new Image();
-        img.onload = function() {
-            // Clear canvas
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            // Draw image resized to 280x280
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        }
-        img.src = e.target.result;
-    }
-    reader.readAsDataURL(file);
+let painting = false;
+
+ctx.fillStyle = "white";
+ctx.fillRect(0, 0, canvas.width, canvas.height);
+ctx.lineWidth = 20;
+ctx.lineCap = "round";
+ctx.strokeStyle = "black";
+
+function startPosition(e) {
+  painting = true;
+  draw(e);
+}
+function endPosition() {
+  painting = false;
+  ctx.beginPath();
+}
+function draw(e) {
+  if (!painting) return;
+  ctx.lineTo(e.offsetX, e.offsetY);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(e.offsetX, e.offsetY);
+}
+
+canvas.addEventListener("mousedown", startPosition);
+canvas.addEventListener("mouseup", endPosition);
+canvas.addEventListener("mousemove", draw);
+
+clearBtn.addEventListener("click", () => {
+  ctx.fillStyle = "white";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.beginPath();
+  resultBox.classList.add("hidden");
 });
 
-// Send image to backend for prediction
-predictBtn.addEventListener('click', async () => {
-    if (!imageInput.files[0]) {
-        alert("Please select an image first!");
-        return;
-    }
+predictBtn.addEventListener("click", async () => {
+  const image = canvas.toDataURL("image/png");
+  const blob = await (await fetch(image)).blob();
+  const formData = new FormData();
+  formData.append("image", blob, "digit.png");
 
-    const formData = new FormData();
-    formData.append('image', imageInput.files[0]);
+  resultValue.innerText = "⏳";
+  resultBox.classList.remove("hidden");
 
-    result.textContent = "Prediction: ⏳";
+  const response = await fetch("/predict", {
+    method: "POST",
+    body: formData,
+  });
 
-    try {
-        const response = await fetch('/predict', {
-            method: 'POST',
-            body: formData
-        });
-        const data = await response.json();
-        if (data.prediction !== undefined) {
-            result.textContent = `Prediction: ${data.prediction}`;
-        } else {
-            result.textContent = `Error: ${data.error}`;
-        }
-    } catch (err) {
-        result.textContent = `Error: ${err}`;
-    }
+  const data = await response.json();
+  if (data.prediction !== undefined) {
+    resultValue.innerText = data.prediction;
+  } else {
+    resultValue.innerText = "❌";
+  }
 });
